@@ -43,7 +43,6 @@ pip install pygame
 
 크게 2 가지로 나누자.
 
-![1551541803690](C:\Users\USER10\AppData\Roaming\Typora\typora-user-images\1551541803690.png)
 
 ### (1) BlockSet
 
