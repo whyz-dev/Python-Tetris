@@ -31,6 +31,7 @@ pygame은 python을 이용하여 display와 event 처리를 해주는 좋은 mod
 pygame은 다음과 같이 설치할 수 있다.
 
 ```
+conda create -n tetris python=3.6
 pip install pygame
 ```
 
