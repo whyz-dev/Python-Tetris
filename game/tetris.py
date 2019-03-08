@@ -1,5 +1,4 @@
 import pygame
-import pygame
 import random
 import numpy as np
 
@@ -16,6 +15,7 @@ class game:
         # config
         pygame.init()
         pygame.display.set_caption('Unifox-Tetris')
+        
         # image config
         self.pad           = pygame.display.set_mode((self.w, self.h))
         self.clock         = pygame.time.Clock() 
@@ -32,10 +32,11 @@ class game:
         gamedone = False
         systemdone = False
         while not systemdone:
-            while self.page == 0:
+            while self.page == 0 and not gamedone:
                 for event in pygame.event.get(): # User did something
-                    if event.type == pygame.QUIT: # If user clicked close
+                    if event.type == pygame.QUIT or event.type == pygame.K_q: # If user clicked close
                         gamedone=True # Flag that we are done so we exit this loop
+                        systemdone=True
                     if event.type == pygame.KEYDOWN:
                         if event.key == pygame.K_SPACE:
                             self.page=1
@@ -45,6 +46,7 @@ class game:
                 for event in pygame.event.get(): # User did something
                     if event.type == pygame.QUIT: # If user clicked close
                         gamedone=True # Flag that we are done so we exit this loop
+                        systemdone = True
                     if event.type == pygame.KEYDOWN:
                         if event.key == pygame.K_a:
                             self.block.rotate+=1
@@ -61,7 +63,7 @@ class game:
                 self.render()
                 self.next()
 
-            while self.page==2:
+            while self.page==2 and not gamedone:
                 pass
     
     def next(self):
@@ -69,6 +71,7 @@ class game:
             if self.block.collision() or self.block.block_collision_down():
                 self.block.merge()
                 self.block.init_variable()
+                self.block.delete_line()
             else:
                 self.block.y+=1
         self.time+=1
@@ -80,14 +83,13 @@ class game:
         elif self.page == 1:
             self.pad.fill(self.WHITE)
             self.block.draw_block_shape(self.pad)
-            
+            self.block.draw_block_map(self.pad)
         else:
             pass
         pygame.display.update()
                        
 class block:
     def __init__(self):
-        self.map = np.zeros((7,6))
         self.telomino =[
             [
              [[0,0,0],
@@ -216,6 +218,7 @@ class block:
         self.max_width     = 6
         self.min_width     = 0
         self.n    = 0
+        self.map = np.zeros((self.max_height,self.max_width))
         self.level = 200
         self.step = 0
         self.bag = []
@@ -254,8 +257,32 @@ class block:
             for j in range(length):
                 if self.telomino[tel][ac][i][j] == 1:
                     if self.y+i < self.max_height and self.x+j < self.max_width and self.y+i >=0 and self.x+j >=0:
-                        self.map[self.y+i][self.x+j] = 1
+                        self.map[self.y+i][self.x+j] = 1+tel
                         
+    def check_tetris(self):
+        isTetris = np.zeros(self.max_height)
+        for i in range(self.max_height):
+            tmp = True
+            for j in range(self.max_width):
+                if self.map[i][j] == 0: 
+                    tmp = False
+            isTetris[i] = tmp
+        return isTetris
+
+    def delete_line(self):
+        isTetris = self.check_tetris()
+        for i in range(self.max_height):
+            if isTetris[i] == True:
+                print(i)
+                self.shift_map(i)
+
+    def shift_map(self,num):
+        for i in range(num,1,-1):
+            for j in range(self.max_width):
+                self.map[i][j]  = self.map[i-1][j]
+        for j in range(self.max_width):
+            self.map[0][j] = 0
+
     def draw_block(self,pad,num,x,y):
         if num == 0:
             pad.blit(self.I_block,(x,y))
@@ -284,7 +311,14 @@ class block:
         for i in range(length):
             for j in range(length):
                 if self.telomino[tel][ac][i][j] == 1:
-                    self.draw_block(pad,tel,self.maptop_x+(self.x+i)*100, self.maptop_y+(self.y+j)*100)
+                    self.draw_block(pad,tel,self.maptop_x+(self.x+j)*100, self.maptop_y+(self.y+i)*100)
+
+    def draw_block_map(self,pad):
+        for i in range(self.max_height):
+            for j in range(self.max_width):
+                if self.map[i][j] > 0:  
+                    self.draw_block(pad, self.map[i][j]-1, self.maptop_x+j*100, self.maptop_y+i*100)
+
     def right(self):
         max_w = 0
         tel = int(self.bag[(self.step)%21])
@@ -294,7 +328,7 @@ class block:
             for j in range(length):
                 if self.telomino[tel][ac][i][j]==1:
                     max_w = max(max_w, j)
-        if max_w == self.max_width - 1:
+        if max_w+self.x == self.max_width - 1:
             return False
         else:
             return True 
@@ -308,7 +342,7 @@ class block:
             for j in range(length):
                 if self.telomino[tel][ac][i][j]==1:
                     min_w=min(min_w,j)
-        if min_w == self.min_width:
+        if min_w+self.x == self.min_width:
             return False
         else:
             return True 
@@ -320,7 +354,7 @@ class block:
         for i in range(length):
             for j in range(length):
                 if self.y+i < self.max_height and self.x+j+1 < self.max_width and self.y+i>= 0 and self.x+j+1 >=0:
-                    if self.telomino[tel][ac][i][j] == 1 and self.map[self.y+i][self.x+1+j] == 1:
+                    if self.telomino[tel][ac][i][j] == 1 and self.map[self.y+i][self.x+1+j] > 0:
                         return False
         return True
 
@@ -331,10 +365,10 @@ class block:
         for i in range(length):
             for j in range(length):
                 if self.x+j-1 < self.max_width and self.y+i < self.max_height and self.x+j-1 >= 0 and self.y+i >=0 :
-                    if self.telomino[tel][ac][i][j] == 1 and self.map[self.y+i][self.x-1+j] == 1:
+                    if self.telomino[tel][ac][i][j] == 1 and self.map[self.y+i][self.x-1+j] > 0:
                         return False
         return True
-
+        
     def block_collision_down(self):
         tel = int(self.bag[(self.step)%21])
         ac  = self.rotate%4
@@ -342,7 +376,7 @@ class block:
         for i in range(length):
             for j in range(length):
                 if self.x+j < self.max_width and self.y+1+i < self.max_height and self.x+j >= 0 and self.y+1+i >= 0:
-                    if self.telomino[tel][ac][i][j] == 1 and self.map[self.y+1+i][self.x+j] == 1:
+                    if self.telomino[tel][ac][i][j] == 1 and self.map[self.y+1+i][self.x+j] > 0:
                         return True
         return False
 
