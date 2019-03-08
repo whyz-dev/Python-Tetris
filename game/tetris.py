@@ -11,7 +11,6 @@ class game:
         self.time          = 0
         self.pygame_init()
         self.block         = block()
-        self.blockset      = block_set()
     
     def pygame_init(self):
         # config
@@ -52,10 +51,10 @@ class game:
                         if event.key == pygame.K_d:
                             self.block.rotate-=1
                         if event.key == pygame.K_LEFT:
-                            if self.block.left() and self.block.block_collision_left(self.blockset):
+                            if self.block.left() and self.block.block_collision_left():
                                 self.block.x-=1
                         if event.key == pygame.K_RIGHT:
-                            if self.block.right() and self.block.block_collision_right(self.blockset):
+                            if self.block.right() and self.block.block_collision_right():
                                 self.block.x+=1
                         # if event.key == pygame.K_DOWN:
                         #     self.block.y+=1
@@ -67,8 +66,8 @@ class game:
     
     def next(self):
         if self.time % self.block.level == self.block.level-1:
-            if self.block.collision() or self.block.block_collision_down(self.blockset):
-                self.blockset.merge(self.block)
+            if self.block.collision() or self.block.block_collision_down():
+                self.block.merge()
                 self.block.init_variable()
             else:
                 self.block.y+=1
@@ -85,24 +84,10 @@ class game:
         else:
             pass
         pygame.display.update()
-            
-             
-class block_set:
-    def __init__(self):
-        self.map = np.zeros((7,6))
-
-    def merge(self,block):
-        tel = int(block.bag[(block.step)%21])
-        ac  = block.rotate%4
-        length = len(block.telomino[tel][ac])
-        for i in range(length):
-            for j in range(length):
-                if block.telomino[tel][ac][i][j] == 1:
-                    if block.y+i < block.max_height and block.x+j < block.max_width and block.y+i >=0 and block.x+j >=0:
-                        self.map[block.y+i][block.x+j] = 1
-                        
+                       
 class block:
     def __init__(self):
+        self.map = np.zeros((7,6))
         self.telomino =[
             [
              [[0,0,0],
@@ -261,6 +246,16 @@ class block:
                         return True
         return False        
     
+    def merge(self):
+        tel = int(self.bag[(self.step)%21])
+        ac  = self.rotate%4
+        length = len(self.telomino[tel][ac])
+        for i in range(length):
+            for j in range(length):
+                if self.telomino[tel][ac][i][j] == 1:
+                    if self.y+i < self.max_height and self.x+j < self.max_width and self.y+i >=0 and self.x+j >=0:
+                        self.map[self.y+i][self.x+j] = 1
+                        
     def draw_block(self,pad,num,x,y):
         if num == 0:
             pad.blit(self.I_block,(x,y))
@@ -318,36 +313,36 @@ class block:
         else:
             return True 
 
-    def block_collision_right(self, blockset):
+    def block_collision_right(self):
         tel = int(self.bag[(self.step)%21])
         ac  = self.rotate%4
         length = len(self.telomino[tel][ac])
         for i in range(length):
             for j in range(length):
                 if self.y+i < self.max_height and self.x+j+1 < self.max_width and self.y+i>= 0 and self.x+j+1 >=0:
-                    if self.telomino[tel][ac][i][j] == 1 and blockset.map[self.y+i][self.x+1+j] == 1:
+                    if self.telomino[tel][ac][i][j] == 1 and self.map[self.y+i][self.x+1+j] == 1:
                         return False
         return True
 
-    def block_collision_left(self, blockset):
+    def block_collision_left(self):
         tel = int(self.bag[(self.step)%21])
         ac  = self.rotate%4
         length = len(self.telomino[tel][ac])
         for i in range(length):
             for j in range(length):
                 if self.x+j-1 < self.max_width and self.y+i < self.max_height and self.x+j-1 >= 0 and self.y+i >=0 :
-                    if self.telomino[tel][ac][i][j] == 1 and blockset.map[self.y+i][self.x-1+j] == 1:
+                    if self.telomino[tel][ac][i][j] == 1 and self.map[self.y+i][self.x-1+j] == 1:
                         return False
         return True
 
-    def block_collision_down(self, blockset):
+    def block_collision_down(self):
         tel = int(self.bag[(self.step)%21])
         ac  = self.rotate%4
         length = len(self.telomino[tel][ac])
         for i in range(length):
             for j in range(length):
                 if self.x+j < self.max_width and self.y+1+i < self.max_height and self.x+j >= 0 and self.y+1+i >= 0:
-                    if self.telomino[tel][ac][i][j] == 1 and blockset.map[self.y+1+i][self.x+j] == 1:
+                    if self.telomino[tel][ac][i][j] == 1 and self.map[self.y+1+i][self.x+j] == 1:
                         return True
         return False
 
