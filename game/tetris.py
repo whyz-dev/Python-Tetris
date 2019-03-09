@@ -5,57 +5,116 @@ import os
 
 class game:
     def __init__(self):
-        self.w             = 1500
-        self.h             = 900
+        self.w             = 1200
+        self.h             = 720
         self.WHITE         = (0,0,0)
         self.time          = 0
-        self.pygame_init()
         self.block         = block()
+        self.selection     = 0
+        self.score         = 0
+        self.pygame_init()
     
     def pygame_init(self):
         # config
+        pygame.mixer.pre_init(44100, -16, 1, 512)
         pygame.init()
         pygame.display.set_caption('Unifox-Tetris')
         
-        os.environ['SDL_VIDEO_WINDOW_POS'] = "%d,%d" % (0,0)
-        
         # image config
-        self.pad           = pygame.display.set_mode((self.w, self.h), pygame.NOFRAME)
+        self.pad           = pygame.display.set_mode((self.w, self.h))
         self.clock         = pygame.time.Clock() 
-        self.bg            = pygame.image.load('image/map1-2.png')
-        self.title         = pygame.image.load('image/first_start_on.png')
+        self.bg_img        = pygame.image.load('image(set)/map1-2.png')
+
+        self.title0_img     = pygame.image.load('image(set)/first_start_on.png')
+        self.title1_img     = pygame.image.load('image(set)/first_score_on.png')
+        self.title2_img     = pygame.image.load('image(set)/first_exit_on.png')
+
+        self.select_snd    = pygame.mixer.Sound('sound/select.wav')
+        self.start_snd     = pygame.mixer.Sound('sound/start.wav')
+        self.collision_snd = pygame.mixer.Sound('sound/collision.wav')
+        self.gameover_snd  = pygame.mixer.Sound('sound/gameover.wav')
+        self.level_up_snd  = pygame.mixer.Sound('sound/levelup_high.wav')
+        self.delete_snd    = pygame.mixer.Sound('sound/delete.wav')
+
         self.pad.fill(self.WHITE)
-        
+            
         self.page = 0
-    
+
+        pygame.mixer.music.load('sound/mainthema.mp3')
+
     def draw_bg(self):
-        self.pad.blit(self.bg, (0,0))
+        self.pad.blit(self.bg_img, (0,0))
     
-    def draw_title(self):
-        self.pad.blit(self.title, (0,0))
+    def draw_title(self,num):
+        if num == 0:
+            self.pad.blit(self.title0_img, (0,0))
+        elif num == 1:
+            self.pad.blit(self.title1_img, (0,0))
+        else:
+            self.pad.blit(self.title2_img, (0,0))
+
+    def play_select(self):
+        self.select_snd.play()
+        
+    def play_start(self):
+        self.start_snd.play()
+
+    def play_collision(self):
+        self.collision_snd.play()
+
+    def play_level_up(self):
+        self.level_up_snd.play()
+    
+    def play_gameover(self):
+        self.gameover_snd.play()
+
+    def play_delete(self):
+        self.delete_snd.play()
+
+    def play_song(self):
+        pygame.mixer.music.play(-1)
+    
+    def stop_song(self):
+        pygame.mixer.music.stop()
 
     def system(self):
         gamedone = False
         systemdone = False
         while not systemdone:
             while self.page == 0 and not gamedone:
-                for event in pygame.event.get(): # User did something
-                    if event.type == pygame.QUIT or event.type == pygame.K_q: # If user clicked close
-                        gamedone=True # Flag that we are done so we exit this loop
+                for event in pygame.event.get(): 
+                    if event.type == pygame.QUIT: 
+                        gamedone=True 
                         systemdone=True
                     if event.type == pygame.KEYDOWN:
                         if event.key == pygame.K_SPACE:
                             self.page=1
                             self.block = block()
                             self.block.init_variable()
+                            self.play_song()
+                        if event.key == pygame.K_DOWN:
+                            if self.selection < 2:
+                                self.selection +=1
+                                self.play_collision()
+                        if event.key == pygame.K_UP:
+                            if self.selection > 0:
+                                self.selection -=1
+                                self.play_collision()
+                        if event.key == pygame.K_q:
+                            gamedone=True 
+                            systemdone=True
+
                 self.render()
            
             while self.page==1 and not gamedone:
-                for event in pygame.event.get(): # User did something
-                    if event.type == pygame.QUIT: # If user clicked close
-                        gamedone=True # Flag that we are done so we exit this loop
+                for event in pygame.event.get(): 
+                    if event.type == pygame.QUIT: 
+                        gamedone=True 
                         systemdone = True
                     if event.type == pygame.KEYDOWN:
+                        if event.key == pygame.K_q:
+                            gamedone=True 
+                            systemdone=True
                         if event.key == pygame.K_a:
                             self.block.spin(True)
                         if event.key == pygame.K_d:
@@ -69,21 +128,28 @@ class game:
                         if event.key == pygame.K_DOWN:
                             if not self.block.collision() and not self.block.block_collision_down():
                                 self.block.y+=1
+                                self.time=0
+                                self.score+=10
                             else:
                                 self.time = self.block.level-1
                         if event.key == pygame.K_SPACE:
                             while not self.block.collision() and not self.block.block_collision_down():
                                 self.block.y+=1
+                                self.score+=10
                             self.time = self.block.level-1
+                            self.play_select()
                 self.render()
                 self.next()
 
             while self.page==2 and not gamedone:
-                for event in pygame.event.get(): # User did something
-                    if event.type == pygame.QUIT or event.type == pygame.K_q: # If user clicked close
-                        gamedone=True # Flag that we are done so we exit this loop
+                for event in pygame.event.get(): 
+                    if event.type == pygame.QUIT: 
+                        gamedone=True 
                         systemdone=True
                     if event.type == pygame.KEYDOWN:
+                        if event.key == pygame.K_q:
+                            gamedone=True 
+                            systemdone=True
                         if event.key == pygame.K_SPACE:
                             self.page = 0
                 self.render()
@@ -93,25 +159,31 @@ class game:
             if self.block.collision() or self.block.block_collision_down():
                 if self.block.gameover() == True:
                     self.page = 2
+                    self.stop_song()
+                    self.play_gameover()
                     pass
                 self.block.merge()
                 self.block.init_variable()
-                self.block.delete_line()
+                deleted_line = self.block.delete_line()
+                if deleted_line > 0:
+                    self.play_delete()
             else:
                 self.block.y+=1
         self.time+=1
 
     def render(self):
         if self.page == 0:
-            self.draw_title()
+            self.draw_title(self.selection)
         
         elif self.page == 1:
             self.draw_bg()
             self.block.draw_block_shape(self.pad)
             self.block.draw_block_map(self.pad)
+            self.block.draw_next_block(self.pad)
         else:
             self.draw_bg()
         pygame.display.update()
+        self.clock.tick(60)
                        
 class block:
     def __init__(self):
@@ -169,9 +241,6 @@ class block:
              [0,0,1]]
             ],
             [
-             [[0,1,0],
-             [0,1,0],
-             [0,1,1]],
 
              [[0,0,0],
              [1,1,1],
@@ -184,11 +253,12 @@ class block:
              [[0,0,1],
              [1,1,1],
              [0,0,0]],
+             
+             [[0,1,0],
+             [0,1,0],
+             [0,1,1]],
              ],
              [
-            [[0,1,0],
-             [0,1,0],
-             [1,1,0]],
              
             [[1,0,0],
              [1,1,1],
@@ -201,6 +271,10 @@ class block:
             [[0,0,0],
              [1,1,1],
              [0,0,1]],
+             
+            [[0,1,0],
+             [0,1,0],
+             [1,1,0]],
              ],
             [
             [[1,1,],
@@ -213,10 +287,6 @@ class block:
              [1,1,]],
           ],
           [
-            [[0,1,0,0],
-             [0,1,0,0],
-             [0,1,0,0],
-             [0,1,0,0]],
 
             [[0,0,0,0],
              [1,1,1,1],
@@ -231,15 +301,23 @@ class block:
             [[0,0,0,0],
              [0,0,0,0],
              [1,1,1,1],
-             [0,0,0,0]]
+             [0,0,0,0]],
+             
+            [[0,1,0,0],
+             [0,1,0,0],
+             [0,1,0,0],
+             [0,1,0,0]],
           ]
         ]
         self.rotate= 0
         self.x    = 0
         self.y    = 0
-        self.maptop_x      = 450
-        self.maptop_y      = -60
-        self.max_height    = 9
+        self.nexttop_x      = 910
+        self.nexttop_y      = 110
+        
+        self.maptop_x      = 360
+        self.maptop_y      = 32
+        self.max_height    = 8
         self.max_width     = 6
         self.min_width     = 0
         self.n    = 0
@@ -249,13 +327,13 @@ class block:
         self.bag = []
         self._set_bag()
         
-        self.I_block       = pygame.image.load('image/I_block.png')
-        self.J_block       = pygame.image.load('image/J_block.png')
-        self.L_block       = pygame.image.load('image/L_block.png')
-        self.O_block       = pygame.image.load('image/O_block.png')
-        self.S_block       = pygame.image.load('image/S_block.png')
-        self.T_block       = pygame.image.load('image/T_block.png')
-        self.Z_block       = pygame.image.load('image/Z_block.png')
+        self.I_block       = pygame.image.load('image(set)/I_block.png')
+        self.J_block       = pygame.image.load('image(set)/J_block.png')
+        self.L_block       = pygame.image.load('image(set)/L_block.png')
+        self.O_block       = pygame.image.load('image(set)/O_block.png')
+        self.S_block       = pygame.image.load('image(set)/S_block.png')
+        self.T_block       = pygame.image.load('image(set)/T_block.png')
+        self.Z_block       = pygame.image.load('image(set)/Z_block.png')
         
     def _set_bag(self):
         bag_order = np.arange(0,7)
@@ -280,24 +358,26 @@ class block:
         ac  = (self.rotate + dr) % 4
         length = len(self.telomino[tel][ac])
         
-        dx = [0, -1, 1, 0, -1, 1, 0, -1, 1]
-        dy = [0, 0, 0, -1, -1, -1, 1, 1, 1]
+        dx = [0, -1, 1, -2, 2]
+        dy = [0, -1, -2, 1, 2]
 
-        for k in range(9):
-            spintmp = True
-            for i in range(length):
-                for j in range(length):
-                    if self.telomino[tel][ac][i][j] == 1:
-                        if self.y+i+dy[k] < self.max_height and self.x+j+dx[k] < self.max_width and self.y+i+dy[k] >=0 and self.x+j+dx[k] >=0:
-                            if self.map[self.y+i+dy[k]][self.x+j+dx[k]] > 0: 
+        for ddy in dy:
+            for ddx in dx:
+                spintmp = True
+                for i in range(length):
+                    for j in range(length):
+                        if self.telomino[tel][ac][i][j] == 1:
+                            if self.y+i+ddy < self.max_height and self.x+j+ddx < self.max_width  and self.x+j+ddx >=0:
+                                if self.map[self.y+i+ddy][self.x+j+ddx] > 0: 
+                                    spintmp = False
+                            else:
                                 spintmp = False
-                        else:
-                            spintmp = False
-            if spintmp == True:
-                self.y += dy[k]
-                self.x += dx[k]
-                self.rotate += dr
-                break
+                if spintmp == True:
+                    self.y += ddy
+                    self.x += ddx
+                    self.rotate += dr
+                    print(ddx, ddy)
+                    return None
 
     def gameover(self):
         tel = int(self.bag[(self.step)%21])
@@ -306,7 +386,7 @@ class block:
         for i in range(length):
             for j in range(length):
                 if self.telomino[tel][ac][i][j] == 1:
-                    if self.y+i >= self.max_height or self.y+i <0:
+                    if self.y+i < 0:
                         return True
         return False
 
@@ -331,13 +411,17 @@ class block:
         return isTetris
 
     def delete_line(self):
+        cnt=0
         isTetris = self.check_tetris()
         for i in range(self.max_height):
             if isTetris[i] == True:
                 self.shift_map(i)
+                cnt+=1
+        return cnt
+            
 
     def shift_map(self,num):
-        for i in range(num,1,-1):
+        for i in range(num,0,-1):
             for j in range(self.max_width):
                 self.map[i][j]  = self.map[i-1][j]
         for j in range(self.max_width):
@@ -345,23 +429,27 @@ class block:
 
     def draw_block(self,pad,num,x,y):
         if num == 0:
-            pad.blit(self.I_block,(x,y))
-        if num == 1:
-            pad.blit(self.J_block,(x,y))
-        if num == 2:
-            pad.blit(self.L_block,(x,y))
-        if num == 3:
-            pad.blit(self.O_block,(x,y))
-        if num == 4:
-            pad.blit(self.S_block,(x,y))
-        if num == 5:
             pad.blit(self.T_block,(x,y))
-        if num == 6:
+        if num == 1:
+            pad.blit(self.S_block,(x,y))
+        if num == 2:
             pad.blit(self.Z_block,(x,y))
+        if num == 3:
+            pad.blit(self.L_block,(x,y))
+        if num == 4:
+            pad.blit(self.J_block,(x,y))
+        if num == 5:
+            pad.blit(self.O_block,(x,y))
+        if num == 6:
+            pad.blit(self.I_block,(x,y))
             
-    def init_variable(self):
-        self.x=2
-        self.y=-2
+    def init_variable(self):        
+        tel = int(self.bag[(self.step)%21])
+        ac  = self.rotate % 4
+        length = len(self.telomino[tel][ac])
+
+        self.x=1 + length//2
+        self.y=-4
         self.step+=1
 
     def draw_block_shape(self,pad):
@@ -371,13 +459,23 @@ class block:
         for i in range(length):
             for j in range(length):
                 if self.telomino[tel][ac][i][j] == 1:
-                    self.draw_block(pad,tel,self.maptop_x+(self.x+j)*100, self.maptop_y+(self.y+i)*100)
+                    self.draw_block(pad,tel,self.maptop_x+(self.x+j)*80, self.maptop_y+(self.y+i)*80)
 
     def draw_block_map(self,pad):
         for i in range(self.max_height):
             for j in range(self.max_width):
                 if self.map[i][j] > 0:  
-                    self.draw_block(pad, self.map[i][j]-1, self.maptop_x+j*100, self.maptop_y+i*100)
+                    self.draw_block(pad, self.map[i][j]-1, self.maptop_x+j*80, self.maptop_y+i*80)
+
+    def draw_next_block(self,pad):
+        for k in range(self.step, self.step+3):
+            tel = int(self.bag[(k)%21])
+            ac  = 0
+            length = len(self.telomino[tel][ac])
+            for i in range(length):
+                for j in range(length):
+                    if self.telomino[tel][ac][i][j] == 1:
+                        self.draw_block(pad,tel,self.nexttop_x+j*80, self.nexttop_y+((k-self.step)*3+i)*80)
 
     def right(self):
         max_w = 0
