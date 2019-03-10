@@ -7,7 +7,8 @@ class game:
     def __init__(self):
         self.w             = 1200
         self.h             = 720
-        self.WHITE         = (255,255,255)
+        self.WHITE         = (255,255,255,255)
+        self.BLACK         = (0,0,0,0)
         self.time          = 0
         self.block         = block()
         self.selection     = 0
@@ -26,16 +27,18 @@ class game:
         self.clock         = pygame.time.Clock() 
         self.bg_img        = pygame.image.load('image/map1-2.png')
 
-        self.title0_img     = pygame.image.load('image/first_start_on.png')
+        self.title0_img     = pygame.image.load('image/first_start_on.png').convert_alpha()
         self.title1_img     = pygame.image.load('image/first_score_on.png')
         self.title2_img     = pygame.image.load('image/first_exit_on.png')
 
+        self.title0_img.set_alpha(2)
         self.select_snd    = pygame.mixer.Sound('sound/select.wav')
         self.start_snd     = pygame.mixer.Sound('sound/start.wav')
         self.collision_snd = pygame.mixer.Sound('sound/collision.wav')
         self.gameover_snd  = pygame.mixer.Sound('sound/gameover.wav')
         self.level_up_snd  = pygame.mixer.Sound('sound/levelup_high.wav')
         self.delete_snd    = pygame.mixer.Sound('sound/delete.wav')
+        self.hui           = pygame.mixer.Sound('sound/Start effect.mp3')
 
         self.pad.fill(self.WHITE)
         
@@ -53,6 +56,23 @@ class game:
         else:
             self.pad.blit(self.title2_img, (0,0))
 
+    def intro(self):
+        self.pad.fill(self.WHITE)
+        for i in range(20):
+            self.pad.fill(self.BLACK)
+            pygame.display.update()
+            self.clock.tick(60)
+        
+        for i in range(40):
+            self.hui.play()
+            self.pad.fill(self.BLACK)
+            pygame.display.update()
+        
+        for i in range(10):
+            self.pad.fill(self.BLACK)
+            pygame.display.update()
+        
+        
     def play_select(self):
         self.select_snd.play()
         
@@ -84,6 +104,7 @@ class game:
     def system(self):
         gamedone = False
         systemdone = False
+        self.intro()
         while not systemdone:
             self.set_music(self.music_list[self.page])
             self.play_song()
