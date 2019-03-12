@@ -25,7 +25,7 @@ class game:
         # image config
         self.pad           = pygame.display.set_mode((self.w, self.h))
         self.clock         = pygame.time.Clock() 
-        self.bg_img        = pygame.image.load('image/map1-2.png')
+        self.bg_img        = pygame.image.load('image/map!.png')
 
         self.title_on      = pygame.image.load('image/first_all_on.png')
         self.title_off     = pygame.image.load('image/first_all_off.png')
@@ -498,8 +498,8 @@ class block:
         ac  = (self.rotate + dr) % 4
         length = len(self.telomino[self.tel][ac])
         
-        dx = [0, 1, -1, 2]
-        dy = [0, 1, -1]
+        dx = [0, 1, -1, 2, -2]
+        dy = [0, 1, 2,-1]
 
         for ddy in dy:
             for ddx in dx:
