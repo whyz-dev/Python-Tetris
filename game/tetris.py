@@ -66,19 +66,6 @@ class game:
 
     def intro(self):
         self.pad.fill(self.WHITE)
-        # for i in range(120):
-        #     self.pad.fill(self.BLACK)
-        #     pygame.display.update()
-        #     self.clock.tick(60)
-        
-        # self.hui_snd.play()
-        # for i in range(480):
-        #     self.pad.blit(self.logo_img,(self.w//2-150, self.h//2-150))
-        #     pygame.display.update()
-        
-        # for i in range(120):
-        #     self.pad.fill(self.BLACK)
-        #     pygame.display.update()
         
         for i in range(60):
             
@@ -95,10 +82,11 @@ class game:
                 self.pad.blit(self.title_off,(0,0))
             pygame.display.update()
         
-        for i in range(60):
+        for i in range(30):
             pygame.event.get()
             self.pad.blit(self.title_on,(0,0))
             pygame.display.update()
+            
     def play_select(self):
         self.select_snd.play()
         
@@ -240,7 +228,7 @@ class game:
         self.block = block()
         self.tetris_cnt = 0
         self.score = 0
-        self.step = -1
+        self.step = 0
         self.block.init_variable()
 
     def next(self):
@@ -422,7 +410,7 @@ class block:
         self.x    = 0
         self.y    = 0
         self.nexttop_x      = 1020
-        self.nexttop_y      = 150
+        self.nexttop_y      = 100
         
         self.holdtop_x      = 160
         self.holdtop_y      = 200
@@ -480,6 +468,7 @@ class block:
     
     def set_tel(self):
         self.tel = int(self.bag[(self.step)%21])
+        print(self.step, self.tel)
 
     def hold_block(self):
         if not self.hold_pushed:
@@ -509,7 +498,7 @@ class block:
         ac  = (self.rotate + dr) % 4
         length = len(self.telomino[self.tel][ac])
         
-        dx = [0, 1, -1, 2, -2]
+        dx = [0, 1, -1, 2]
         dy = [0, 1, -1]
 
         for ddy in dy:
@@ -530,7 +519,7 @@ class block:
                     return None
 
     def level_up(self,cnt):
-        cal_tmp = max(2, 70 - (cnt + 3) // 3 * 3)
+        cal_tmp = max(2, 60 - (cnt + 3) // 3 * 3)
         if self.level != cal_tmp:
             self.level = cal_tmp
 
@@ -585,9 +574,9 @@ class block:
         if num == 0:
             pad.blit(self.T_block,(x,y))
         if num == 1:
-            pad.blit(self.S_block,(x,y))
-        if num == 2:
             pad.blit(self.Z_block,(x,y))
+        if num == 2:
+            pad.blit(self.S_block,(x,y))
         if num == 3:
             pad.blit(self.L_block,(x,y))
         if num == 4:
@@ -598,8 +587,6 @@ class block:
             pad.blit(self.I_block,(x,y))
             
     def init_variable(self):        
-        self.set_tel()
-
         ac  = self.rotate % 4
         length = len(self.telomino[self.tel][ac])
 
@@ -608,6 +595,8 @@ class block:
         self.step+=1
         self.rotate = 0
         self.hold_pushed = False
+
+        self.set_tel()
         
     def draw_block_shape(self,pad):
         ac  = self.rotate%4
@@ -624,22 +613,22 @@ class block:
                     self.draw_block(pad, self.map[i][j]-1, self.maptop_x+j*80, self.maptop_y+i*80)
 
     def draw_next_block(self,pad):
-        for k in range(self.step, self.step+4):
+        for k in range(self.step+1, self.step+4):
             tel = int(self.bag[(k)%21])
             ac  = 0
             length = len(self.telomino[tel][ac])
             if tel == 6:
-                self.draw_mini_block(pad,tel,self.nexttop_x-75, self.nexttop_y+(k-self.step)*150)
-            else:
-                self.draw_mini_block(pad,tel,self.nexttop_x-60, self.nexttop_y+(k-self.step)*150)
+                self.draw_mini_block(pad,tel,self.nexttop_x-75, self.nexttop_y+(k-self.step-1)*150)
+            else: 
+                self.draw_mini_block(pad,tel,self.nexttop_x-60, self.nexttop_y+(k-self.step-1)*150)
     
     def draw_mini_block(self,pad,num,x,y):
         if num == 0:
             pad.blit(self.T_blockm,(x,y))
         if num == 1:
-            pad.blit(self.S_blockm,(x,y))
-        if num == 2:
             pad.blit(self.Z_blockm,(x,y))
+        if num == 2:
+            pad.blit(self.S_blockm,(x,y))
         if num == 3:
             pad.blit(self.L_blockm,(x,y))
         if num == 4:
