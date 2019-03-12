@@ -613,7 +613,7 @@ class block:
                     self.draw_block(pad, self.map[i][j]-1, self.maptop_x+j*80, self.maptop_y+i*80)
 
     def draw_next_block(self,pad):
-        for k in range(self.step+1, self.step+4):
+        for k in range(self.step+1, self.step+5):
             tel = int(self.bag[(k)%21])
             ac  = 0
             length = len(self.telomino[tel][ac])
