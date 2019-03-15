@@ -14,6 +14,7 @@ class game:
         self.selection     = 0
         self.score         = 0
         self.tetris_cnt    = 0
+        self.asdf          = 1
         self.pygame_init()
     
     def pygame_init(self):
@@ -67,8 +68,23 @@ class game:
     def intro(self):
         self.pad.fill(self.WHITE)
         
+        for i in range(30):
+            pygame.event.get()
+            self.pad.fill(self.BLACK)
+            pygame.display.update()
+
+        for i in range(120):
+            pygame.event.get()
+            self.pad.fill(self.BLACK)
+            self.pad.blit(self.logo_img,(self.w//2-150,self.h//2-150))
+            pygame.display.update()
+
+        for i in range(30):
+            pygame.event.get()
+            self.pad.fill(self.BLACK)
+            pygame.display.update()
+
         for i in range(60):
-            
             pygame.event.get()
             self.pad.blit(self.title_off,(0,0))
             pygame.display.update()
@@ -82,7 +98,7 @@ class game:
                 self.pad.blit(self.title_off,(0,0))
             pygame.display.update()
         
-        for i in range(30):
+        for i in range(10):
             pygame.event.get()
             self.pad.blit(self.title_on,(0,0))
             pygame.display.update()
@@ -123,8 +139,8 @@ class game:
         pygame.mixer.music.set_volume(10)
         
     def play_song(self):
-        # pygame.mixer.music.play(-1)
-        pass
+        pygame.mixer.music.play(-1)
+    
     def stop_song(self):
         pygame.mixer.music.stop()
 
@@ -210,19 +226,19 @@ class game:
                 self.render()
                 self.next()
 
-            while self.page==2 and not gamedone:
-                for event in pygame.event.get(): 
-                    if event.type == pygame.QUIT: 
-                        gamedone=True 
-                        systemdone=True
-                    if event.type == pygame.KEYDOWN:
-                        if event.key == pygame.K_q:
-                            gamedone=True 
-                            systemdone=True
-                        if event.key == pygame.K_SPACE:
-                            self.page = 0
-                            self.play_collision()
-                self.render()
+            # while self.page==2 and not gamedone:
+            #     for event in pygame.event.get(): 
+            #         if event.type == pygame.QUIT: 
+            #             gamedone=True 
+            #             systemdone=True
+            #         if event.type == pygame.KEYDOWN:
+            #             if event.key == pygame.K_q:
+            #                 gamedone=True 
+            #                 systemdone=True
+            #             if event.key == pygame.K_SPACE:
+            #                 self.page = 0
+            #                 self.play_collision()
+            #     self.render()
     
     def init_game(self):
         self.block = block()
@@ -237,9 +253,11 @@ class game:
         if self.time % self.block.level == self.block.level-1:
             if self.block.collision() or self.block.block_collision_down():
                 if self.block.gameover() == True:
-                    self.page = 2
+                    self.page = 0
                     self.stop_song()
                     self.play_gameover()
+                    print(self.asdf,"번째 :",self.score,"점")
+                    self.asdf+=1
                     pass
                 self.block.merge()
                 self.block.init_variable()
@@ -253,16 +271,16 @@ class game:
         self.time+=1
 
     def draw_score(self):
-        font = pygame.font.Font("font/font.ttf", 60)
+        font = pygame.font.Font("font/NEON VORTEX.TTF", 40)
         text = font.render(str(self.score), True, self.WHITE)
         textRect = text.get_rect()
-        textRect.center = (165,420)
+        textRect.center = (260,675)
         
         self.pad.blit(text,textRect)
         
         text = font.render(str((self.tetris_cnt+3)//3), True, self.WHITE)
         textRect = text.get_rect()
-        textRect.center = (180,520)
+        textRect.center = (260,595)
         self.pad.blit(text,textRect)
 
     def render(self):
@@ -402,22 +420,22 @@ class block:
              
             [[0,1,0,0],
              [0,1,0,0],
-             [0,1,0,0],
+             [0,1,0,0], 
              [0,1,0,0]],
           ]
         ]
         self.rotate= 0
         self.x    = 0
         self.y    = 0
-        self.nexttop_x      = 1020
-        self.nexttop_y      = 100
+        self.nexttop_x      = 925
+        self.nexttop_y      = 250
         
-        self.holdtop_x      = 160
-        self.holdtop_y      = 200
+        self.holdtop_x      = 260
+        self.holdtop_y      = 315
 
         self.maptop_x      = 360
-        self.maptop_y      = 32
-        self.max_height    = 8
+        self.maptop_y      = 130
+        self.max_height    = 7
         self.max_width     = 6
         self.min_width     = 0
         self.n    = 0
@@ -433,13 +451,13 @@ class block:
         
         pygame.display.init()
 
-        self.I_block       = pygame.image.load('image/I_block.png')
-        self.J_block       = pygame.image.load('image/J_block.png')
-        self.L_block       = pygame.image.load('image/L_block.png')
-        self.O_block       = pygame.image.load('image/O_block.png')
-        self.S_block       = pygame.image.load('image/S_block.png')
-        self.T_block       = pygame.image.load('image/T_block.png')
-        self.Z_block       = pygame.image.load('image/Z_block.png')
+        self.I_block       = pygame.image.load('image/!I_block!.png')
+        self.J_block       = pygame.image.load('image/!J_block!.png')
+        self.L_block       = pygame.image.load('image/!L_block!.png')
+        self.O_block       = pygame.image.load('image/!O_block!.png')
+        self.S_block       = pygame.image.load('image/!S_block!.png')
+        self.T_block       = pygame.image.load('image/!T_block!.png')
+        self.Z_block       = pygame.image.load('image/!Z_block!.png')
         
         self.I_blockm       = pygame.image.load('image/N_I.png')
         self.J_blockm       = pygame.image.load('image/N_J.png')
@@ -468,7 +486,6 @@ class block:
     
     def set_tel(self):
         self.tel = int(self.bag[(self.step)%21])
-        print(self.step, self.tel)
 
     def hold_block(self):
         if not self.hold_pushed:
@@ -482,7 +499,7 @@ class block:
 
                 
                 self.x= self.max_width//2 - length//2
-                self.y=-2
+                self.y=-3
                 self.rotate = 0
 
             else:
@@ -519,7 +536,7 @@ class block:
                     return None
 
     def level_up(self,cnt):
-        cal_tmp = max(2, 60 - (cnt + 3) // 3 * 3)
+        cal_tmp = max(2, 60 - (cnt + 3) // 2 * 5)
         if self.level != cal_tmp:
             self.level = cal_tmp
 
@@ -533,7 +550,7 @@ class block:
                     if self.y+i < 0:
                         return True
         return False
-
+ 
     def merge(self):
         
         ac  = self.rotate % 4
@@ -591,7 +608,7 @@ class block:
         length = len(self.telomino[self.tel][ac])
 
         self.x= self.max_width//2 - length//2
-        self.y=-2
+        self.y=-3
         self.step+=1
         self.rotate = 0
         self.hold_pushed = False
