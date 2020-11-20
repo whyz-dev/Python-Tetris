@@ -1,4 +1,4 @@
-# Unifox-Tetris
+# Unifox Python Tetris
 
 ## Abstract
 
